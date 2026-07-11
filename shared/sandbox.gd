@@ -54,7 +54,7 @@ var categories := {
 		"description": "Particles, shaders and screen effects.",
 		"accent": Color("a78bfa"),
 		"modules": [
-			{"title": "Impact Effects", "description": "Mix screen shake, hit-stop, flashes and particles.", "scene": "", "status": "PLANNED"}
+			{"title": "Impact Effects", "description": "Mix screen shake, flashes, squash and procedural particles.", "scene": "res://modules/effects/impact_lab.tscn", "status": "READY"}
 		]
 	},
 	"gameplay": {
@@ -70,6 +70,9 @@ var categories := {
 
 
 func configure_input_actions() -> void:
+	# UI buttons use Godot's built-in action, so explicitly ensure controllers
+	# have an accept input rather than relying on an editor-generated default.
+	add_action("ui_accept", [KEY_ENTER, KEY_SPACE], [JOY_BUTTON_A])
 	add_action("sandbox_back", [KEY_ESCAPE], [JOY_BUTTON_B])
 	add_action("sandbox_reset", [KEY_R], [JOY_BUTTON_X])
 	add_action("lab_layer_1", [KEY_1], [JOY_BUTTON_X])
