@@ -25,9 +25,11 @@ static func style_button(button: Button, accent: Color, large := false) -> void:
 	var normal := panel_style(Color("18243a"), Color("30425f"), 12)
 	var hover := panel_style(Color("223454"), accent, 12)
 	var pressed := panel_style(Color("101a2c"), accent, 12)
+	var focus := panel_style(Color("223454"), accent.lightened(0.2), 12)
+	focus.set_border_width_all(3)
 	var disabled := panel_style(Color("141c2a"), Color("263247"), 12)
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("focus", focus)
 	button.add_theme_stylebox_override("disabled", disabled)
-
