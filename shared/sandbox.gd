@@ -5,6 +5,10 @@ const CATEGORY_MENU := "res://main/category_menu.tscn"
 
 var selected_category := ""
 
+
+func _ready() -> void:
+	configure_input_actions()
+
 var categories := {
 	"physics": {
 		"title": "Physics",
@@ -21,8 +25,8 @@ var categories := {
 			{
 				"title": "Collision Layers",
 				"description": "A visual playground for masks, layers and overlapping bodies.",
-				"scene": "",
-				"status": "PLANNED"
+				"scene": "res://modules/physics/collision_lab.tscn",
+				"status": "READY"
 			}
 		]
 	},
@@ -41,7 +45,7 @@ var categories := {
 		"description": "Points, combos, multipliers and feedback.",
 		"accent": Color("ffd166"),
 		"modules": [
-			{"title": "Combo Laboratory", "description": "Test combo windows, multiplier decay and score feedback.", "scene": "", "status": "PLANNED"}
+			{"title": "Combo Laboratory", "description": "Test timing windows, multiplier growth and score feedback.", "scene": "res://modules/scoring/combo_lab.tscn", "status": "READY"}
 		]
 	},
 	"effects": {
@@ -65,6 +69,30 @@ var categories := {
 }
 
 
+func configure_input_actions() -> void:
+	add_action("sandbox_back", [KEY_ESCAPE], [JOY_BUTTON_B])
+	add_action("sandbox_reset", [KEY_R], [JOY_BUTTON_X])
+	add_action("lab_layer_1", [KEY_1], [JOY_BUTTON_X])
+	add_action("lab_layer_2", [KEY_2], [JOY_BUTTON_Y])
+	add_action("lab_layer_3", [KEY_3], [JOY_BUTTON_LEFT_SHOULDER])
+	add_action("combo_hit", [KEY_SPACE, KEY_ENTER], [JOY_BUTTON_A])
+
+
+func add_action(action_name: StringName, keys: Array, joy_buttons: Array) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	for keycode in keys:
+		var key_event := InputEventKey.new()
+		key_event.physical_keycode = keycode
+		if not InputMap.action_has_event(action_name, key_event):
+			InputMap.action_add_event(action_name, key_event)
+	for button_index in joy_buttons:
+		var joy_event := InputEventJoypadButton.new()
+		joy_event.button_index = button_index
+		if not InputMap.action_has_event(action_name, joy_event):
+			InputMap.action_add_event(action_name, joy_event)
+
+
 func open_category(category_id: String) -> void:
 	selected_category = category_id
 	get_tree().change_scene_to_file(CATEGORY_MENU)
@@ -77,4 +105,3 @@ func open_module(scene_path: String) -> void:
 
 func go_home() -> void:
 	get_tree().change_scene_to_file(MAIN_MENU)
-
