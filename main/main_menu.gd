@@ -3,6 +3,9 @@ extends Control
 
 func _ready() -> void:
 	RenderingServer.set_default_clear_color(Color("09111f"))
+	var background := MenuBackground.new()
+	background.setup(Color("62d9ff"))
+	add_child(background)
 	build_interface()
 
 
@@ -49,9 +52,12 @@ func build_interface() -> void:
 	page.add_child(grid)
 
 	var first_button: Button
+	var card_index: int = 0
 	for category_id in Sandbox.categories:
 		var category_button := create_category_card(category_id, Sandbox.categories[category_id])
 		grid.add_child(category_button)
+		UIFactory.animate_button(category_button, Sandbox.categories[category_id].accent, 0.05 + card_index * 0.055)
+		card_index += 1
 		if first_button == null:
 			first_button = category_button
 	first_button.grab_focus.call_deferred()
