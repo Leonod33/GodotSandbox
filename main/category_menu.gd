@@ -6,7 +6,11 @@ func _ready() -> void:
 	if Sandbox.selected_category.is_empty() or not Sandbox.categories.has(Sandbox.selected_category):
 		Sandbox.go_home()
 		return
-	build_interface(Sandbox.categories[Sandbox.selected_category])
+	var category: Dictionary = Sandbox.categories[Sandbox.selected_category]
+	var background := MenuBackground.new()
+	background.setup(category.accent)
+	add_child(background)
+	build_interface(category)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -33,6 +37,7 @@ func build_interface(data: Dictionary) -> void:
 	back.custom_minimum_size.x = 230
 	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	UIFactory.style_button(back, data.accent)
+	UIFactory.animate_button(back, data.accent, 0.02)
 	back.pressed.connect(Sandbox.go_home)
 	page.add_child(back)
 
@@ -54,9 +59,12 @@ func build_interface(data: Dictionary) -> void:
 	page.add_child(modules)
 
 	var first_ready_button: Button
+	var module_index: int = 0
 	for module in data.modules:
 		var module_button := create_module_card(module, data.accent)
 		modules.add_child(module_button)
+		UIFactory.animate_button(module_button, data.accent, 0.08 + module_index * 0.07)
+		module_index += 1
 		if first_ready_button == null and not module_button.disabled:
 			first_ready_button = module_button
 	if first_ready_button:
