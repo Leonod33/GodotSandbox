@@ -8,6 +8,8 @@ An expandable collection of small, interactive Godot 4 experiments. The sandbox 
 - **Physics → Collision Layers Laboratory** — toggle parts of the player's collision mask and test the result against colour-coded walls.
 - **Scoring Systems → Combo Laboratory** — practise timing hits while a growing combo accelerates the challenge and increases the multiplier.
 - **Unusual Visual Effects → Impact Effects Laboratory** — combine screen shake, squash, flashes and procedural sparks at four selectable intensities.
+- **Sprites → Animation Workshop** — control a true AnimatedSprite2D frame sequence and an independent AnimationPlayer motion layer.
+- **Basic Gameplay Loops → Collect and Return** — collect crystals, manage a three-item carrying limit, and bank full loads for bonuses against the clock.
 
 All menus and modules support keyboard, mouse, and standard game controllers. Use the D-pad or left stick to navigate, A/Cross to select, and B/Circle to go back.
 
