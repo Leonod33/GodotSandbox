@@ -48,11 +48,16 @@ func build_interface() -> void:
 	grid.add_theme_constant_override("v_separation", 18)
 	page.add_child(grid)
 
+	var first_button: Button
 	for category_id in Sandbox.categories:
-		grid.add_child(create_category_card(category_id, Sandbox.categories[category_id]))
+		var category_button := create_category_card(category_id, Sandbox.categories[category_id])
+		grid.add_child(category_button)
+		if first_button == null:
+			first_button = category_button
+	first_button.grab_focus.call_deferred()
 
 	var footer := Label.new()
-	footer.text = "One sandbox • Many experiments • Zero fear of making a mess"
+	footer.text = "Navigate: D-pad / Left Stick     Select: A / Cross     Mouse and keyboard also supported"
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	footer.add_theme_color_override("font_color", Color("60708b"))
 	footer.add_theme_font_size_override("font_size", 14)
@@ -76,4 +81,3 @@ func create_category_card(category_id: String, data: Dictionary) -> Button:
 	UIFactory.style_button(button, data.accent, true)
 	button.pressed.connect(Sandbox.open_category.bind(category_id))
 	return button
-
