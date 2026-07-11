@@ -13,6 +13,8 @@ An expandable collection of small, interactive Godot 4 experiments. The sandbox 
 
 All menus and modules support keyboard, mouse, and standard game controllers. Use the D-pad or left stick to navigate, A/Cross to select, and B/Circle to go back.
 
+Menus include animated focus cards, category-coloured atmospheric backgrounds, procedural navigation sounds, staged entrances, and smooth scene fades.
+
 ## Planned categories
 
 - Physics
