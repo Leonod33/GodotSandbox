@@ -9,6 +9,12 @@ func _ready() -> void:
 	build_interface(Sandbox.categories[Sandbox.selected_category])
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("sandbox_back"):
+		get_viewport().set_input_as_handled()
+		Sandbox.go_home()
+
+
 func build_interface(data: Dictionary) -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -47,8 +53,16 @@ func build_interface(data: Dictionary) -> void:
 	modules.add_theme_constant_override("separation", 14)
 	page.add_child(modules)
 
+	var first_ready_button: Button
 	for module in data.modules:
-		modules.add_child(create_module_card(module, data.accent))
+		var module_button := create_module_card(module, data.accent)
+		modules.add_child(module_button)
+		if first_ready_button == null and not module_button.disabled:
+			first_ready_button = module_button
+	if first_ready_button:
+		first_ready_button.grab_focus.call_deferred()
+	else:
+		back.grab_focus.call_deferred()
 
 
 func create_module_card(module: Dictionary, accent: Color) -> Button:
@@ -62,4 +76,3 @@ func create_module_card(module: Dictionary, accent: Color) -> Button:
 	if not button.disabled:
 		button.pressed.connect(Sandbox.open_module.bind(module.scene))
 	return button
-
