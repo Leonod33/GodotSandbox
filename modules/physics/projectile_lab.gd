@@ -20,6 +20,15 @@ func _ready() -> void:
 	queue_redraw()
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("sandbox_back"):
+		Sandbox.open_category("physics")
+	elif event.is_action_pressed("sandbox_reset"):
+		reset_projectile()
+	elif event.is_action_pressed("combo_hit"):
+		launch_projectile()
+
+
 func _physics_process(delta: float) -> void:
 	if not projectile_flying:
 		return
@@ -87,6 +96,7 @@ func build_interface() -> void:
 
 	var back := Button.new()
 	back.text = "← PHYSICS"
+	back.focus_mode = Control.FOCUS_NONE
 	back.custom_minimum_size.x = 145
 	UIFactory.style_button(back, Color("62d9ff"))
 	back.pressed.connect(Sandbox.open_category.bind("physics"))
@@ -103,7 +113,7 @@ func build_interface() -> void:
 	heading.add_child(title)
 
 	var hint := Label.new()
-	hint.text = "Adjust the variables, inspect the prediction, then launch."
+	hint.text = "D-pad/Stick: adjust focused slider   A/Cross: launch   X/Square: reset   B/Circle: back"
 	hint.add_theme_color_override("font_color", Color("91a4c1"))
 	heading.add_child(hint)
 
@@ -123,9 +133,12 @@ func build_interface() -> void:
 	control_title.add_theme_font_size_override("font_size", 17)
 	controls.add_child(control_title)
 
-	controls.add_child(create_slider("ANGLE", 10, 80, angle_degrees, "°", set_angle))
+	var angle_control := create_slider("ANGLE", 10, 80, angle_degrees, "°", set_angle)
+	controls.add_child(angle_control)
 	controls.add_child(create_slider("SPEED", 10, 50, launch_speed, " m/s", set_speed))
 	controls.add_child(create_slider("GRAVITY", 1, 20, gravity, " m/s²", set_gravity))
+	var angle_slider: HSlider = angle_control.get_child(1)
+	angle_slider.grab_focus.call_deferred()
 
 	readout = Label.new()
 	readout.text = "READY TO LAUNCH"
@@ -210,4 +223,3 @@ func set_gravity(value: float) -> void:
 func update_readout(message: String) -> void:
 	if readout:
 		readout.text = message
-
