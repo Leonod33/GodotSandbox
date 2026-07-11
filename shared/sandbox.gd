@@ -36,7 +36,7 @@ var categories := {
 		"description": "Animation, layering and sprite behaviour.",
 		"accent": Color("ff8cc8"),
 		"modules": [
-			{"title": "Animation Workshop", "description": "Compare sprite animation techniques and timing.", "scene": "", "status": "PLANNED"}
+			{"title": "Animation Workshop", "description": "Compare frame animation with an AnimationPlayer motion layer.", "scene": "res://modules/sprites/animation_workshop.tscn", "status": "READY"}
 		]
 	},
 	"scoring": {
@@ -63,7 +63,7 @@ var categories := {
 		"description": "Small repeatable loops and prototypes.",
 		"accent": Color("7ee787"),
 		"modules": [
-			{"title": "Collect and Return", "description": "Gather objects, bank them safely, and repeat under pressure.", "scene": "", "status": "PLANNED"}
+			{"title": "Collect and Return", "description": "Gather objects, manage carrying capacity, and bank them under pressure.", "scene": "res://modules/gameplay/collect_return.tscn", "status": "READY"}
 		]
 	}
 }
