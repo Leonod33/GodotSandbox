@@ -63,7 +63,8 @@ var categories := {
 		"description": "Particles, shaders and screen effects.",
 		"accent": Color("a78bfa"),
 		"modules": [
-			{"title": "Impact Effects", "description": "Mix screen shake, flashes, squash and procedural particles.", "scene": "res://modules/effects/impact_lab.tscn", "status": "READY"}
+			{"title": "Impact Effects", "description": "Mix screen shake, flashes, squash and procedural particles.", "scene": "res://modules/effects/impact_lab.tscn", "status": "READY"},
+			{"title": "Neon Kaleidoscope", "description": "Conduct a colourful, symmetrical light machine with the controller.", "scene": "res://modules/effects/kaleidoscope_lab.tscn", "status": "READY"}
 		]
 	},
 	"gameplay": {
