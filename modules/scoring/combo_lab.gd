@@ -117,7 +117,7 @@ func create_stat_label() -> Label:
 
 func attempt_hit() -> void:
 	var target_half_ratio := (SWEET_WIDTH / BAR_RECT.size.x) / 2.0
-	var distance := abs(cursor_ratio - sweet_centre)
+	var distance: float = absf(cursor_ratio - sweet_centre)
 	if distance <= target_half_ratio:
 		combo += 1
 		best_combo = max(best_combo, combo)
@@ -157,4 +157,3 @@ func update_labels() -> void:
 		label.add_theme_color_override("font_color", Color("f5f8ff"))
 	feedback_label.text = feedback
 	feedback_label.add_theme_color_override("font_color", feedback_color)
-
