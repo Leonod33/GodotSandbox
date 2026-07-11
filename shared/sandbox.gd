@@ -4,10 +4,19 @@ const MAIN_MENU := "res://main/main_menu.tscn"
 const CATEGORY_MENU := "res://main/category_menu.tscn"
 
 var selected_category := ""
+var transitioning: bool = false
+var fade_layer: CanvasLayer
+var fade_rect: ColorRect
+var move_player: AudioStreamPlayer
+var confirm_player: AudioStreamPlayer
 
 
 func _ready() -> void:
 	configure_input_actions()
+	create_transition_layer()
+	create_menu_audio()
+	await get_tree().process_frame
+	fade_from_black()
 
 var categories := {
 	"physics": {
@@ -98,13 +107,90 @@ func add_action(action_name: StringName, keys: Array, joy_buttons: Array) -> voi
 
 func open_category(category_id: String) -> void:
 	selected_category = category_id
-	get_tree().change_scene_to_file(CATEGORY_MENU)
+	change_scene(CATEGORY_MENU)
 
 
 func open_module(scene_path: String) -> void:
 	if not scene_path.is_empty():
-		get_tree().change_scene_to_file(scene_path)
+		change_scene(scene_path)
 
 
 func go_home() -> void:
-	get_tree().change_scene_to_file(MAIN_MENU)
+	change_scene(MAIN_MENU)
+
+
+func change_scene(scene_path: String) -> void:
+	if transitioning:
+		return
+	transitioning = true
+	fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+	var fade_out: Tween = create_tween()
+	fade_out.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	fade_out.tween_property(fade_rect, "color:a", 1.0, 0.22)
+	await fade_out.finished
+	get_tree().change_scene_to_file(scene_path)
+	await get_tree().process_frame
+	var fade_in: Tween = create_tween()
+	fade_in.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	fade_in.tween_property(fade_rect, "color:a", 0.0, 0.28)
+	await fade_in.finished
+	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	transitioning = false
+
+
+func create_transition_layer() -> void:
+	fade_layer = CanvasLayer.new()
+	fade_layer.layer = 100
+	add_child(fade_layer)
+	fade_rect = ColorRect.new()
+	fade_rect.color = Color(0.025, 0.045, 0.08, 1.0)
+	fade_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fade_rect.mouse_filter = Control.MOUSE_FILTER_STOP
+	fade_layer.add_child(fade_rect)
+
+
+func fade_from_black() -> void:
+	var tween: Tween = create_tween()
+	tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(fade_rect, "color:a", 0.0, 0.4)
+	await tween.finished
+	fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+func create_menu_audio() -> void:
+	move_player = AudioStreamPlayer.new()
+	move_player.stream = create_tone(540.0, 0.045, 0.15)
+	move_player.volume_db = -11.0
+	add_child(move_player)
+	confirm_player = AudioStreamPlayer.new()
+	confirm_player.stream = create_tone(760.0, 0.09, 0.22)
+	confirm_player.volume_db = -8.0
+	add_child(confirm_player)
+
+
+func create_tone(frequency: float, duration: float, volume: float) -> AudioStreamWAV:
+	const SAMPLE_RATE := 22050
+	var sample_count: int = int(SAMPLE_RATE * duration)
+	var bytes := PackedByteArray()
+	bytes.resize(sample_count * 2)
+	for index in range(sample_count):
+		var progress: float = float(index) / float(sample_count)
+		var envelope: float = (1.0 - progress) * volume
+		var wave: float = sin(TAU * frequency * float(index) / float(SAMPLE_RATE))
+		bytes.encode_s16(index * 2, int(wave * envelope * 32767.0))
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = SAMPLE_RATE
+	stream.stereo = false
+	stream.data = bytes
+	return stream
+
+
+func play_move() -> void:
+	if move_player:
+		move_player.play()
+
+
+func play_confirm() -> void:
+	if confirm_player:
+		confirm_player.play()
