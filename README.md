@@ -5,6 +5,10 @@ An expandable collection of small, interactive Godot 4 experiments. The sandbox 
 ## Current module
 
 - **Physics → Projectile Laboratory** — adjust launch angle, speed, and gravity, then compare the predicted trajectory with a live projectile.
+- **Physics → Collision Layers Laboratory** — toggle parts of the player's collision mask and test the result against colour-coded walls.
+- **Scoring Systems → Combo Laboratory** — practise timing hits while a growing combo accelerates the challenge and increases the multiplier.
+
+All menus and modules support keyboard, mouse, and standard game controllers. Use the D-pad or left stick to navigate, A/Cross to select, and B/Circle to go back.
 
 ## Planned categories
 
@@ -21,4 +25,3 @@ An expandable collection of small, interactive Godot 4 experiments. The sandbox 
 3. Use `Sandbox.open_category(...)`, `Sandbox.open_module(...)`, or `Sandbox.go_home()` for navigation.
 
 The menu reads directly from the catalogue, so no menu scene needs to be redesigned when a module is added.
-
