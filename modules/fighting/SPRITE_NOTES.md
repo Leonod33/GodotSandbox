@@ -1,6 +1,8 @@
 # Ken sprite-sheet notes — phase 1
 
-The supplied sheet is 608×2048 pixels and uses an opaque RGB `(0, 129, 129)` background. The project preserves the original PNG and removes this colour at render time with `ken_colour_key.gdshader`.
+The supplied sheet is 608×2048 pixels and uses an opaque RGB `(0, 129, 129)` background. The project preserves the original PNG; `ken_colour_key.gdshader` remains available when rendering that original source directly.
+
+`ken_sheet_xbr4.png` is a non-destructive 4× xBR derivative. The teal background is removed after upscaling, and the fighter reads the original frame coordinates multiplied by four. A final 1.5× display scale gives the same effective size as enlarging the original frames by 6×, but from reconstructed curves and colour transitions rather than raw enlarged pixels.
 
 ## Confidently identified for this build
 
@@ -19,3 +21,4 @@ The upper sheet clearly contains standing normals, kicks, hit/guard reactions an
 - Movement uses a modern smooth velocity for this prototype, not yet frame-perfect SFII movement data.
 - The ground collision is currently a single floor plane. Fighter pushboxes, hurtboxes and attack hitboxes are intentionally postponed.
 - All six conventional controller attack buttons are reserved. Start/Menu exits the experiment so B/Circle remains available for a future kick binding.
+- The original sheet remains available as the authoritative source and instant fallback; movement and animation definitions do not depend on the enhanced sheet.

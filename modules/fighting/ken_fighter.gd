@@ -3,7 +3,8 @@ extends Node2D
 
 signal state_changed(new_state: StringName)
 
-const DISPLAY_SCALE := 4.0
+const SOURCE_SCALE := 4.0
+const DISPLAY_SCALE := 1.5
 const WALK_SPEED := 245.0
 const JUMP_VELOCITY := -560.0
 const GRAVITY := 1450.0
@@ -38,11 +39,10 @@ var grounded: bool = true
 
 
 func _ready() -> void:
-	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sprite_sheet = load("res://modules/fighting/ken_sheet.png") as Texture2D
-	var colour_key_material := ShaderMaterial.new()
-	colour_key_material.shader = load("res://modules/fighting/ken_colour_key.gdshader") as Shader
-	material = colour_key_material
+	# xBR has already reconstructed four source pixels for every original pixel.
+	# Linear sampling at the final 1.5× display step avoids reintroducing hard blocks.
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	sprite_sheet = load("res://modules/fighting/ken_sheet_xbr4.png") as Texture2D
 	position.y = FLOOR_Y
 	queue_redraw()
 
@@ -90,7 +90,8 @@ func _draw() -> void:
 	var frames: Array[Rect2] = current_frames()
 	if frames.is_empty():
 		return
-	var source: Rect2 = frames[mini(frame_index, frames.size() - 1)]
+	var original_source: Rect2 = frames[mini(frame_index, frames.size() - 1)]
+	var source := Rect2(original_source.position * SOURCE_SCALE, original_source.size * SOURCE_SCALE)
 	var draw_size: Vector2 = source.size * DISPLAY_SCALE
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1.0))
 	var destination := Rect2(-draw_size.x / 2.0, -draw_size.y, draw_size.x, draw_size.y)
