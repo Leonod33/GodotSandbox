@@ -1,15 +1,22 @@
-# Ken sprite-sheet notes — phase 1
+# Ken sprite-sheet notes — full-resolution remap
 
-The supplied sheet is 608×2048 pixels and uses an opaque RGB `(0, 129, 129)` background. The project preserves the original PNG; `ken_colour_key.gdshader` remains available when rendering that original source directly.
+The authoritative sheet is the original 1546×5207 RGBA PNG. Its background is already transparent, so the fighter references it directly without a colour-key or resized derivative.
 
-`ken_sheet_xbr4.png` is a non-destructive 4× xBR derivative. The teal background is removed after upscaling, and the fighter reads the original frame coordinates multiplied by four. A final 1.5× display scale gives the same effective size as enlarging the original frames by 6×, but from reconstructed curves and colour transitions rather than raw enlarged pixels.
+All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-resolution PNG's pixel coordinates. Each frame also has an explicit bottom-centre anchor derived from its visible alpha bounds. This keeps the feet on the floor and prevents differing crop sizes from pulling Ken sideways. The `Node2D` itself is never moved or scaled to compensate for a bad crop.
 
 ## Confidently identified for this build
 
-- **Idle/standing:** first six sprites on the first row (`x=6…160`, `y=7…45`).
-- **Forward walk:** first six sprites on the second row (`x=6…158`, `y=60…97`). The second six nearby appear to be the alternate/backward walk cycle; they are intentionally deferred until movement timing and facing have been tested.
-- **Crouch:** the standing-to-crouch transition around `x=30…81`, `y=449…478`.
-- **Neutral jump:** the compact vertical arc around `x=30…194`, `y=599…666`. The animation is driven by the character's physical ascent/apex/descent rather than playing as a blind loop.
+- **Idle/standing:** first six sprites on the first row (`x=15…407`, `y=17…115`).
+- **Forward walk:** first six sprites on the second row (`x=15…402`, `y=152…247`). The second six nearby appear to be the alternate/backward walk cycle; they are intentionally deferred until movement timing and facing have been tested.
+- **Crouch:** the standing-to-crouch transition around `x=76…206`, `y=1141…1216`.
+- **Neutral jump:** the compact vertical arc around `x=76…494`, `y=1522…1694`. The animation is driven by the character's physical ascent/apex/descent rather than playing as a blind loop.
+
+## Import settings
+
+- Filter: nearest (set on the fighter `CanvasItem`).
+- Mipmaps: disabled (`mipmaps/generate=false`).
+- Compression: lossless (`compress/mode=0`).
+- Resize limit: disabled (`process/size_limit=0`).
 
 ## Recognised but deliberately deferred
 
