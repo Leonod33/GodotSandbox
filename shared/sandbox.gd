@@ -75,6 +75,15 @@ var categories := {
 		"modules": [
 			{"title": "Collect and Return", "description": "Gather objects, manage carrying capacity, and bank them under pressure.", "scene": "res://modules/gameplay/collect_return.tscn", "status": "READY"}
 		]
+	},
+	"fighting": {
+		"title": "Fighting Games",
+		"icon": "拳",
+		"description": "Movement, attacks, hitboxes and fighter systems.",
+		"accent": Color("ff6b57"),
+		"modules": [
+			{"title": "Ken Training Ground", "description": "Phase one: authentic sprite-sheet locomotion, jumping and crouching.", "scene": "res://modules/fighting/ken_training_lab.tscn", "status": "READY"}
+		]
 	}
 }
 
@@ -89,6 +98,9 @@ func configure_input_actions() -> void:
 	add_action("lab_layer_2", [KEY_2], [JOY_BUTTON_Y])
 	add_action("lab_layer_3", [KEY_3], [JOY_BUTTON_LEFT_SHOULDER])
 	add_action("combo_hit", [KEY_SPACE, KEY_ENTER], [JOY_BUTTON_A])
+	# Fighting modules reserve all six attack buttons. Start/Menu exits instead.
+	add_action("fighter_exit", [KEY_ESCAPE], [JOY_BUTTON_START])
+	add_action("fighter_reset", [KEY_R], [JOY_BUTTON_BACK])
 
 
 func add_action(action_name: StringName, keys: Array, joy_buttons: Array) -> void:
