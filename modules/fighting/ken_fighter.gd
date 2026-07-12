@@ -3,8 +3,10 @@ extends Node2D
 
 signal state_changed(new_state: StringName)
 
-const SOURCE_SCALE := 4.0
-const DISPLAY_SCALE := 1.5
+# The supplied sheet is already the full-resolution 1546x5207 source.  This
+# display multiplier preserves the character's previous on-screen size without
+# scaling the Node2D or altering the source texture.
+const DISPLAY_SCALE := 2.36
 const WALK_SPEED := 245.0
 const JUMP_VELOCITY := -560.0
 const GRAVITY := 1450.0
@@ -13,20 +15,35 @@ const LEFT_BOUND := 105.0
 const RIGHT_BOUND := 785.0
 
 var idle_frames: Array[Rect2] = [
-	Rect2(6, 9, 24, 36), Rect2(32, 9, 25, 36), Rect2(59, 9, 24, 36),
-	Rect2(85, 8, 24, 37), Rect2(111, 7, 23, 38), Rect2(136, 8, 24, 37)
+	Rect2(15, 22, 62, 93), Rect2(81, 22, 64, 93), Rect2(150, 22, 62, 93),
+	Rect2(216, 20, 62, 95), Rect2(282, 17, 59, 98), Rect2(345, 20, 62, 95)
+]
+var idle_anchors: Array[Vector2] = [
+	Vector2(30.5, 92), Vector2(32, 92), Vector2(30.5, 92),
+	Vector2(31, 94), Vector2(29.5, 97), Vector2(31, 94)
 ]
 var walk_frames: Array[Rect2] = [
-	Rect2(6, 63, 22, 34), Rect2(30, 61, 25, 36), Rect2(56, 60, 27, 37),
-	Rect2(85, 61, 26, 36), Rect2(113, 61, 22, 36), Rect2(137, 61, 21, 36)
+	Rect2(15, 160, 57, 87), Rect2(76, 155, 64, 92), Rect2(142, 152, 70, 95),
+	Rect2(216, 155, 67, 92), Rect2(287, 155, 57, 92), Rect2(348, 155, 54, 92)
+]
+var walk_anchors: Array[Vector2] = [
+	Vector2(27.5, 85), Vector2(31, 90), Vector2(35, 93),
+	Vector2(32.5, 90), Vector2(28, 90), Vector2(27, 90)
 ]
 var crouch_frames: Array[Rect2] = [
-	Rect2(30, 449, 23, 29), Rect2(55, 453, 26, 25)
+	Rect2(76, 1141, 59, 75), Rect2(139, 1151, 67, 65)
+]
+var crouch_anchors: Array[Vector2] = [
+	Vector2(29.5, 73), Vector2(33.5, 63)
 ]
 var jump_frames: Array[Rect2] = [
-	Rect2(30, 623, 23, 41), Rect2(55, 608, 21, 36), Rect2(78, 600, 22, 30),
-	Rect2(103, 599, 19, 27), Rect2(125, 603, 19, 33), Rect2(147, 613, 22, 41),
-	Rect2(172, 633, 22, 33)
+	Rect2(76, 1583, 59, 106), Rect2(139, 1545, 55, 93), Rect2(198, 1525, 57, 77),
+	Rect2(261, 1522, 50, 70), Rect2(317, 1533, 50, 85), Rect2(373, 1558, 57, 105),
+	Rect2(437, 1609, 57, 85)
+]
+var jump_anchors: Array[Vector2] = [
+	Vector2(31, 106), Vector2(29, 93), Vector2(31.5, 77), Vector2(27, 70),
+	Vector2(27, 85), Vector2(30.5, 105), Vector2(28.5, 85)
 ]
 
 var sprite_sheet: Texture2D
@@ -88,11 +105,13 @@ func _draw() -> void:
 	var frames: Array[Rect2] = current_frames()
 	if frames.is_empty():
 		return
-	var original_source: Rect2 = frames[mini(frame_index, frames.size() - 1)]
-	var source := Rect2(original_source.position * SOURCE_SCALE, original_source.size * SOURCE_SCALE)
+	var safe_frame_index: int = mini(frame_index, frames.size() - 1)
+	var source: Rect2 = frames[safe_frame_index]
+	var anchors: Array[Vector2] = current_anchors()
+	var anchor: Vector2 = anchors[safe_frame_index]
 	var draw_size: Vector2 = source.size * DISPLAY_SCALE
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(facing, 1.0))
-	var destination := Rect2(-draw_size.x / 2.0, -draw_size.y, draw_size.x, draw_size.y)
+	var destination := Rect2(-anchor * DISPLAY_SCALE, draw_size)
 	draw_texture_rect_region(sprite_sheet, destination, source)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -135,6 +154,18 @@ func current_frames() -> Array[Rect2]:
 			return jump_frames
 		_:
 			return idle_frames
+
+
+func current_anchors() -> Array[Vector2]:
+	match state:
+		&"walk":
+			return walk_anchors
+		&"crouch":
+			return crouch_anchors
+		&"jump":
+			return jump_anchors
+		_:
+			return idle_anchors
 
 
 func animation_speed() -> float:
