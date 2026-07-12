@@ -23,10 +23,10 @@ var idle_anchors: Array[Vector2] = [
 	Vector2(31, 94), Vector2(29.5, 97), Vector2(31, 94)
 ]
 var light_punch_frames: Array[Rect2] = [
-	Rect2(450, 17, 62, 98), Rect2(513, 15, 64, 100), Rect2(579, 18, 59, 97)
+	Rect2(15, 284, 67, 97), Rect2(86, 284, 97, 97), Rect2(188, 284, 67, 97)
 ]
 var light_punch_anchors: Array[Vector2] = [
-	Vector2(30, 97), Vector2(31, 99), Vector2(29, 96)
+	Vector2(33, 96), Vector2(48, 96), Vector2(32, 96)
 ]
 var walk_frames: Array[Rect2] = [
 	Rect2(15, 160, 57, 87), Rect2(76, 155, 64, 92), Rect2(142, 152, 70, 95),
