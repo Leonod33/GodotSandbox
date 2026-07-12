@@ -39,10 +39,8 @@ var grounded: bool = true
 
 
 func _ready() -> void:
-	# xBR has already reconstructed four source pixels for every original pixel.
-	# Linear sampling at the final 1.5× display step avoids reintroducing hard blocks.
-	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	sprite_sheet = load("res://modules/fighting/ken_sheet_xbr4.png") as Texture2D
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite_sheet = load("res://modules/fighting/ken_sheet.png") as Texture2D
 	position.y = FLOOR_Y
 	queue_redraw()
 

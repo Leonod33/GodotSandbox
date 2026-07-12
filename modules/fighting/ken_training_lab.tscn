@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://dtjs1ju4js7gy"]
 
-[ext_resource path="res://modules/fighting/ken_training_lab.gd" type="Script" id="1"]
-[ext_resource path="res://modules/fighting/ken_fighter.gd" type="Script" id="2"]
+[ext_resource type="Script" path="res://modules/fighting/ken_training_lab.gd" id="1"]
+[ext_resource type="Script" path="res://modules/fighting/ken_fighter.gd" id="2"]
 
 [node name="KenTrainingLab" type="Node2D"]
 script = ExtResource("1")
