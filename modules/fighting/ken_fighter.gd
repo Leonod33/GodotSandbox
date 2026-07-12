@@ -22,6 +22,12 @@ var idle_anchors: Array[Vector2] = [
 	Vector2(30.5, 92), Vector2(32, 92), Vector2(30.5, 92),
 	Vector2(31, 94), Vector2(29.5, 97), Vector2(31, 94)
 ]
+var light_punch_frames: Array[Rect2] = [
+	Rect2(450, 17, 62, 98), Rect2(513, 15, 64, 100), Rect2(579, 18, 59, 97)
+]
+var light_punch_anchors: Array[Vector2] = [
+	Vector2(30, 97), Vector2(31, 99), Vector2(29, 96)
+]
 var walk_frames: Array[Rect2] = [
 	Rect2(15, 160, 57, 87), Rect2(76, 155, 64, 92), Rect2(142, 152, 70, 95),
 	Rect2(216, 155, 67, 92), Rect2(287, 155, 57, 92), Rect2(348, 155, 54, 92)
@@ -66,12 +72,18 @@ func _physics_process(delta: float) -> void:
 	var horizontal_input: float = Input.get_axis("ui_left", "ui_right")
 	var crouching: bool = grounded and Input.is_action_pressed("ui_down")
 
-	if grounded and Input.is_action_just_pressed("ui_up") and not crouching:
+	if grounded and not crouching and state != &"light_punch" and Input.is_action_just_pressed("light_punch"):
+		velocity.x = 0.0
+		set_state(&"light_punch")
+
+	if grounded and state != &"light_punch" and Input.is_action_just_pressed("ui_up") and not crouching:
 		grounded = false
 		velocity.y = JUMP_VELOCITY
 		set_state(&"jump")
 
-	if not grounded:
+	if state == &"light_punch":
+		velocity.x = 0.0
+	elif not grounded:
 		velocity.y += GRAVITY * delta
 		velocity.x = horizontal_input * WALK_SPEED * 0.72
 		if not is_zero_approx(horizontal_input):
@@ -132,7 +144,11 @@ func advance_animation(delta: float) -> void:
 	if frame_elapsed < 1.0 / frames_per_second:
 		return
 	frame_elapsed -= 1.0 / frames_per_second
-	if state == &"crouch":
+	if state == &"light_punch":
+		frame_index += 1
+		if frame_index >= frames.size():
+			set_state(&"idle")
+	elif state == &"crouch":
 		frame_index = mini(frame_index + 1, frames.size() - 1)
 	elif state == &"jump":
 		var jump_progress: float = clampf((FLOOR_Y - position.y) / 112.0, 0.0, 1.0)
@@ -146,6 +162,8 @@ func advance_animation(delta: float) -> void:
 
 func current_frames() -> Array[Rect2]:
 	match state:
+		&"light_punch":
+			return light_punch_frames
 		&"walk":
 			return walk_frames
 		&"crouch":
@@ -158,6 +176,8 @@ func current_frames() -> Array[Rect2]:
 
 func current_anchors() -> Array[Vector2]:
 	match state:
+		&"light_punch":
+			return light_punch_anchors
 		&"walk":
 			return walk_anchors
 		&"crouch":
@@ -170,6 +190,8 @@ func current_anchors() -> Array[Vector2]:
 
 func animation_speed() -> float:
 	match state:
+		&"light_punch":
+			return 14.0
 		&"walk":
 			return 11.0
 		&"crouch":

@@ -28,6 +28,14 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="Godot Sandbox"
 
+[input]
+
+light_punch={
+"deadzone": 0.5,
+"events": [Object(InputEventJoypadButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"button_index":2,"pressure":0.0,"pressed":false,"script":null)
+]
+}
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
