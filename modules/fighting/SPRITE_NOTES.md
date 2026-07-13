@@ -8,6 +8,9 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 
 - **Idle/standing:** first six sprites on the first row (`x=15…407`, `y=17…115`).
 - **Standing light punch:** the first three sprites on the third row (`x=15…255`, `y=284…381`). The animation is non-looping, locks ground movement briefly, and returns to idle when its recovery frame finishes.
+- **Standing light kick:** the first five sprites on row 6.
+- **Standing medium kick:** the first five sprites on row 4.
+- **Standing heavy kick:** frames 6–10 on row 4.
 - **Forward walk:** first six sprites on the second row (`x=15…402`, `y=152…247`). The second six nearby appear to be the alternate/backward walk cycle; they are intentionally deferred until movement timing and facing have been tested.
 - **Crouch:** the standing-to-crouch transition around `x=76…206`, `y=1141…1216`.
 - **Neutral jump:** the compact vertical arc around `x=76…494`, `y=1522…1694`. The animation is driven by the character's physical ascent/apex/descent rather than playing as a blind loop.
@@ -22,6 +25,9 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 ## Controls
 
 - Xbox controller **X**: standing light punch (`JOY_BUTTON_X`, button index `2`).
+- Xbox controller **A**: standing light kick (`JOY_BUTTON_A`, button index `0`).
+- Xbox controller **B**: standing medium kick (`JOY_BUTTON_B`, button index `1`).
+- Xbox controller **RT**: standing heavy kick (`JOY_AXIS_TRIGGER_RIGHT`, axis index `5`).
 
 ## Recognised but deliberately deferred
 
