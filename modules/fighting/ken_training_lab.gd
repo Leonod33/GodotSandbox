@@ -27,8 +27,10 @@ func _process(_delta: float) -> void:
 		position_label.text = "KEN X: %04d    FACING: %s" % [
 			int(ken.position.x), "RIGHT" if ken.facing > 0.0 else "LEFT"
 		]
-		distance_label.text = "DUMMY X: %04d    DISTANCE: %03d" % [
-			int(training_dummy.position.x), int(absf(training_dummy.position.x - ken.position.x))
+		var fighter_distance: float = absf(training_dummy.position.x - ken.position.x)
+		distance_label.text = "DUMMY X: %04d    DISTANCE: %03d    %s" % [
+			int(training_dummy.position.x), int(fighter_distance),
+			"CLOSE" if fighter_distance <= KenFighter.CLOSE_ATTACK_DISTANCE else "FAR"
 		]
 
 
@@ -57,7 +59,7 @@ func _draw() -> void:
 
 	var centre_line := Color(0.35, 0.62, 1.0, 0.34)
 	draw_line(Vector2(DUMMY_X, 110), Vector2(DUMMY_X, FLOOR_Y), centre_line, 2.0)
-	draw_line(Vector2(DUMMY_X - 42, FLOOR_Y + 12), Vector2(DUMMY_X + 42, FLOOR_Y + 12), centre_line, 3.0)
+	draw_line(Vector2(DUMMY_X - 72, FLOOR_Y + 12), Vector2(DUMMY_X + 72, FLOOR_Y + 12), centre_line, 3.0)
 
 
 func build_interface() -> void:
@@ -127,13 +129,13 @@ func build_interface() -> void:
 	info.add_child(distance_label)
 
 	var implemented := Label.new()
-	implemented.text = "CURRENT BUILD\n✓ Full-width fighting stage\n✓ Centre training dummy\n✓ Ground pushboxes\n✓ Jump-over crossover\n✓ Both fighters turn to face each other\n✓ Standing punches and kicks"
+	implemented.text = "CURRENT BUILD\n✓ Full-width fighting stage\n✓ Centre training dummy\n✓ Hair-tip ground spacing\n✓ High neutral jump / travelling somersault\n✓ Crossover turning\n✓ Distance-selected kick variants"
 	implemented.add_theme_color_override("font_color", Color("dbe7fa"))
 	implemented.add_theme_font_size_override("font_size", 15)
 	info.add_child(implemented)
 
 	var controls := Label.new()
-	controls.text = "PUNCHES   X / Y / RB     Close-heavy preview: LB\nKICKS       A / B / RT\n\nPress Select/View again to close this panel."
+	controls.text = "PUNCHES   X / Y / RB     Close-heavy preview: LB\nKICKS       A / B / RT     Close/far: automatic\n\nPress Select/View again to close this panel."
 	controls.add_theme_color_override("font_color", Color("ffd166"))
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
