@@ -291,7 +291,7 @@ func populate_attack_frames_from_sheet() -> void:
 		push_error("Ken sprite sheet could not be read for punch frame mapping.")
 		return
 
-	var rows: Array[Vector2i] = find_sprite_rows(image, 800)
+	var rows: Array[Vector2i] = find_sprite_rows(image, 1000)
 	if rows.size() < 6:
 		push_error("Ken sprite sheet has fewer than six detectable animation rows.")
 		return
