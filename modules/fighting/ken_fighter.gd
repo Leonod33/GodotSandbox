@@ -8,16 +8,20 @@ signal state_changed(new_state: StringName)
 # scaling the Node2D or altering the source texture.
 const DISPLAY_SCALE := 2.36
 const WALK_SPEED := 245.0
-const JUMP_VELOCITY := -560.0
-const GRAVITY := 1450.0
+const JUMP_HORIZONTAL_SPEED := 225.0
+const JUMP_VELOCITY := -900.0
+const GRAVITY := 2300.0
+const JUMP_APEX_HEIGHT := 176.0
 const FLOOR_Y := 535.0
 const START_X := 270.0
 const LEFT_BOUND := 70.0
 const RIGHT_BOUND := 1082.0
-const PUSHBOX_HALF_WIDTH := 38.0
+const PUSHBOX_HALF_WIDTH := 72.0
+const CLOSE_ATTACK_DISTANCE := 205.0
 const ATTACK_STATES: Array[StringName] = [
 	&"light_punch", &"medium_punch", &"heavy_punch", &"close_heavy_punch",
-	&"light_kick", &"medium_kick", &"heavy_kick"
+	&"light_kick", &"medium_kick", &"heavy_kick",
+	&"close_light_kick", &"close_medium_kick", &"close_heavy_kick"
 ]
 
 var idle_frames: Array[Rect2] = [
@@ -40,12 +44,16 @@ var heavy_punch_frames: Array[Rect2] = []
 var heavy_punch_anchors: Array[Vector2] = []
 var close_heavy_punch_frames: Array[Rect2] = []
 var close_heavy_punch_anchors: Array[Vector2] = []
-var light_kick_frames: Array[Rect2] = []
-var light_kick_anchors: Array[Vector2] = []
-var medium_kick_frames: Array[Rect2] = []
-var medium_kick_anchors: Array[Vector2] = []
+var far_light_medium_kick_frames: Array[Rect2] = []
+var far_light_medium_kick_anchors: Array[Vector2] = []
 var heavy_kick_frames: Array[Rect2] = []
 var heavy_kick_anchors: Array[Vector2] = []
+var close_light_kick_frames: Array[Rect2] = []
+var close_light_kick_anchors: Array[Vector2] = []
+var close_medium_kick_frames: Array[Rect2] = []
+var close_medium_kick_anchors: Array[Vector2] = []
+var close_heavy_kick_frames: Array[Rect2] = []
+var close_heavy_kick_anchors: Array[Vector2] = []
 var walk_frames: Array[Rect2] = [
 	Rect2(15, 160, 57, 87), Rect2(76, 155, 64, 92), Rect2(142, 152, 70, 95),
 	Rect2(216, 155, 67, 92), Rect2(287, 155, 57, 92), Rect2(348, 155, 54, 92)
@@ -69,6 +77,16 @@ var jump_anchors: Array[Vector2] = [
 	Vector2(31, 106), Vector2(29, 93), Vector2(31.5, 77), Vector2(27, 70),
 	Vector2(27, 85), Vector2(30.5, 105), Vector2(28.5, 85)
 ]
+var somersault_frames: Array[Rect2] = [
+	Rect2(16, 2261, 55, 85), Rect2(79, 2238, 55, 103), Rect2(142, 2198, 61, 78),
+	Rect2(211, 2204, 104, 42), Rect2(323, 2167, 53, 82), Rect2(384, 2198, 122, 44),
+	Rect2(514, 2183, 71, 87), Rect2(593, 2188, 55, 103), Rect2(656, 2261, 55, 85)
+]
+var somersault_anchors: Array[Vector2] = [
+	Vector2(27.5, 85), Vector2(27.5, 94), Vector2(30.5, 81.5),
+	Vector2(52, 63.5), Vector2(26.5, 83.5), Vector2(61, 64.5),
+	Vector2(35.5, 86), Vector2(27.5, 94), Vector2(27.5, 85)
+]
 
 var sprite_sheet: Texture2D
 var state: StringName = &"idle"
@@ -77,6 +95,7 @@ var frame_elapsed: float = 0.0
 var velocity: Vector2 = Vector2.ZERO
 var facing: float = 1.0
 var grounded: bool = true
+var travelling_jump: bool = false
 var opponent: Node2D
 
 
@@ -95,15 +114,15 @@ func _physics_process(delta: float) -> void:
 
 	if grounded and not crouching and not is_attacking():
 		if Input.is_action_just_pressed("heavy_kick"):
-			start_attack(&"heavy_kick")
+			start_attack(distance_attack(&"close_heavy_kick", &"heavy_kick"))
 		elif Input.is_action_just_pressed("medium_kick"):
-			start_attack(&"medium_kick")
+			start_attack(distance_attack(&"close_medium_kick", &"medium_kick"))
 		elif Input.is_action_just_pressed("light_kick"):
-			start_attack(&"light_kick")
+			start_attack(distance_attack(&"close_light_kick", &"light_kick"))
 		elif Input.is_action_just_pressed("close_heavy_punch"):
 			start_attack(&"close_heavy_punch")
 		elif Input.is_action_just_pressed("heavy_punch"):
-			start_attack(&"heavy_punch")
+			start_attack(distance_attack(&"close_heavy_punch", &"heavy_punch"))
 		elif Input.is_action_just_pressed("medium_punch"):
 			start_attack(&"medium_punch")
 		elif Input.is_action_just_pressed("light_punch"):
@@ -111,6 +130,8 @@ func _physics_process(delta: float) -> void:
 
 	if grounded and not is_attacking() and Input.is_action_just_pressed("ui_up") and not crouching:
 		grounded = false
+		travelling_jump = not is_zero_approx(horizontal_input)
+		velocity.x = signf(horizontal_input) * JUMP_HORIZONTAL_SPEED if travelling_jump else 0.0
 		velocity.y = JUMP_VELOCITY
 		set_state(&"jump")
 
@@ -118,14 +139,12 @@ func _physics_process(delta: float) -> void:
 		velocity.x = 0.0
 	elif not grounded:
 		velocity.y += GRAVITY * delta
-		velocity.x = horizontal_input * WALK_SPEED * 0.72
-		if not is_zero_approx(horizontal_input):
-			facing = signf(horizontal_input)
 		position += velocity * delta
 		if position.y >= FLOOR_Y:
 			position.y = FLOOR_Y
 			velocity = Vector2.ZERO
 			grounded = true
+			travelling_jump = false
 			set_state(&"idle")
 	elif crouching:
 		velocity.x = 0.0
@@ -173,6 +192,14 @@ func is_attacking() -> bool:
 	return state in ATTACK_STATES
 
 
+func is_close_to_opponent() -> bool:
+	return opponent != null and absf(opponent.position.x - position.x) <= CLOSE_ATTACK_DISTANCE
+
+
+func distance_attack(close_state: StringName, far_state: StringName) -> StringName:
+	return close_state if is_close_to_opponent() else far_state
+
+
 func set_opponent(new_opponent: Node2D) -> void:
 	opponent = new_opponent
 	update_facing_from_opponent()
@@ -181,7 +208,7 @@ func set_opponent(new_opponent: Node2D) -> void:
 func constrain_against_opponent(previous_x: float) -> void:
 	if not grounded or opponent == null:
 		return
-	var opponent_half_width: float = 38.0
+	var opponent_half_width: float = PUSHBOX_HALF_WIDTH
 	if opponent.has_method("get_pushbox_half_width"):
 		opponent_half_width = float(opponent.call("get_pushbox_half_width"))
 	var minimum_separation: float = PUSHBOX_HALF_WIDTH + opponent_half_width
@@ -217,11 +244,11 @@ func advance_animation(delta: float) -> void:
 	if frames.is_empty():
 		set_state(&"idle")
 		return
-	var frames_per_second: float = animation_speed()
+	var frame_duration: float = animation_frame_duration()
 	frame_elapsed += delta
-	if frame_elapsed < 1.0 / frames_per_second:
+	if frame_elapsed < frame_duration:
 		return
-	frame_elapsed -= 1.0 / frames_per_second
+	frame_elapsed -= frame_duration
 	if is_attacking():
 		frame_index += 1
 		if frame_index >= frames.size():
@@ -229,11 +256,14 @@ func advance_animation(delta: float) -> void:
 	elif state == &"crouch":
 		frame_index = mini(frame_index + 1, frames.size() - 1)
 	elif state == &"jump":
-		var jump_progress: float = clampf((FLOOR_Y - position.y) / 112.0, 0.0, 1.0)
-		if velocity.y < 0.0:
-			frame_index = mini(int(jump_progress * 3.0), 3)
+		if travelling_jump:
+			frame_index = mini(frame_index + 1, frames.size() - 1)
 		else:
-			frame_index = clampi(3 + int((1.0 - jump_progress) * 4.0), 3, frames.size() - 1)
+			var jump_progress: float = clampf((FLOOR_Y - position.y) / JUMP_APEX_HEIGHT, 0.0, 1.0)
+			if velocity.y < 0.0:
+				frame_index = mini(int(jump_progress * 3.0), 3)
+			else:
+				frame_index = clampi(3 + int((1.0 - jump_progress) * 4.0), 3, frames.size() - 1)
 	else:
 		frame_index = (frame_index + 1) % frames.size()
 
@@ -249,17 +279,23 @@ func current_frames() -> Array[Rect2]:
 		&"close_heavy_punch":
 			return close_heavy_punch_frames
 		&"light_kick":
-			return light_kick_frames
+			return far_light_medium_kick_frames
 		&"medium_kick":
-			return medium_kick_frames
+			return far_light_medium_kick_frames
 		&"heavy_kick":
 			return heavy_kick_frames
+		&"close_light_kick":
+			return close_light_kick_frames
+		&"close_medium_kick":
+			return close_medium_kick_frames
+		&"close_heavy_kick":
+			return close_heavy_kick_frames
 		&"walk":
 			return walk_frames
 		&"crouch":
 			return crouch_frames
 		&"jump":
-			return jump_frames
+			return somersault_frames if travelling_jump else jump_frames
 		_:
 			return idle_frames
 
@@ -275,17 +311,23 @@ func current_anchors() -> Array[Vector2]:
 		&"close_heavy_punch":
 			return close_heavy_punch_anchors
 		&"light_kick":
-			return light_kick_anchors
+			return far_light_medium_kick_anchors
 		&"medium_kick":
-			return medium_kick_anchors
+			return far_light_medium_kick_anchors
 		&"heavy_kick":
 			return heavy_kick_anchors
+		&"close_light_kick":
+			return close_light_kick_anchors
+		&"close_medium_kick":
+			return close_medium_kick_anchors
+		&"close_heavy_kick":
+			return close_heavy_kick_anchors
 		&"walk":
 			return walk_anchors
 		&"crouch":
 			return crouch_anchors
 		&"jump":
-			return jump_anchors
+			return somersault_anchors if travelling_jump else jump_anchors
 		_:
 			return idle_anchors
 
@@ -301,19 +343,33 @@ func animation_speed() -> float:
 		&"close_heavy_punch":
 			return 10.5
 		&"light_kick":
-			return 14.0
+			return 16.0
 		&"medium_kick":
-			return 11.5
+			return 15.0
 		&"heavy_kick":
+			return 10.0
+		&"close_light_kick":
+			return 14.0
+		&"close_medium_kick":
+			return 12.0
+		&"close_heavy_kick":
 			return 10.0
 		&"walk":
 			return 11.0
 		&"crouch":
 			return 8.0
 		&"jump":
-			return 12.0
+			return 14.0 if travelling_jump else 12.0
 		_:
 			return 7.5
+
+
+func animation_frame_duration() -> float:
+	# Far light and medium kick share frames. Medium lingers on the fully
+	# extended third frame, matching the original game's heavier timing.
+	if state == &"medium_kick" and frame_index == 2:
+		return 0.16
+	return 1.0 / animation_speed()
 
 
 # The first attack rows contain several animation sequences with irregularly
@@ -343,11 +399,14 @@ func populate_attack_frames_from_sheet() -> void:
 	# Row 5: frames 4-10 are far heavy punch; frames 11-15 are close heavy punch.
 	append_frame_range(fifth_row_frames, 3, 10, heavy_punch_frames, heavy_punch_anchors)
 	append_frame_range(fifth_row_frames, 10, 15, close_heavy_punch_frames, close_heavy_punch_anchors)
-	# Row 6 frames 1-5 are the standing light kick.
-	append_frame_range(sixth_row_frames, 0, 5, light_kick_frames, light_kick_anchors)
-	# Row 4 holds the standing medium kick (frames 1-5) and heavy kick (frames 6-10).
-	append_frame_range(fourth_row_frames, 0, 5, medium_kick_frames, medium_kick_anchors)
+	# Row 4 frames 1-5 are shared by far light and medium kick. Their timing differs.
+	append_frame_range(fourth_row_frames, 0, 5, far_light_medium_kick_frames, far_light_medium_kick_anchors)
+	# Row 4 frames 6-10 are far heavy kick.
 	append_frame_range(fourth_row_frames, 5, 10, heavy_kick_frames, heavy_kick_anchors)
+	# Row 6 contains all three close kicks: frames 1-5, 6-10 and 11-16.
+	append_frame_range(sixth_row_frames, 0, 5, close_light_kick_frames, close_light_kick_anchors)
+	append_frame_range(sixth_row_frames, 5, 10, close_medium_kick_frames, close_medium_kick_anchors)
+	append_frame_range(sixth_row_frames, 10, 16, close_heavy_kick_frames, close_heavy_kick_anchors)
 
 	if medium_punch_frames.size() != 5:
 		push_error("Expected five medium-punch frames on row 3.")
@@ -355,12 +414,16 @@ func populate_attack_frames_from_sheet() -> void:
 		push_error("Expected seven far heavy-punch frames on row 5.")
 	if close_heavy_punch_frames.size() != 5:
 		push_error("Expected five close heavy-punch frames on row 5.")
-	if light_kick_frames.size() != 5:
-		push_error("Expected five light-kick frames on row 6.")
-	if medium_kick_frames.size() != 5:
-		push_error("Expected five medium-kick frames on row 4.")
+	if far_light_medium_kick_frames.size() != 5:
+		push_error("Expected five shared far light/medium-kick frames on row 4.")
 	if heavy_kick_frames.size() != 5:
-		push_error("Expected five heavy-kick frames on row 4.")
+		push_error("Expected five far heavy-kick frames on row 4.")
+	if close_light_kick_frames.size() != 5:
+		push_error("Expected five close light-kick frames on row 6.")
+	if close_medium_kick_frames.size() != 5:
+		push_error("Expected five close medium-kick frames on row 6.")
+	if close_heavy_kick_frames.size() != 6:
+		push_error("Expected six close heavy-kick frames on row 6.")
 
 
 func find_sprite_rows(image: Image, scan_height: int) -> Array[Vector2i]:
@@ -443,5 +506,6 @@ func reset_fighter() -> void:
 	velocity = Vector2.ZERO
 	facing = 1.0
 	grounded = true
+	travelling_jump = false
 	set_state(&"idle")
 	update_facing_from_opponent()
