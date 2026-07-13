@@ -82,7 +82,7 @@ var categories := {
 		"description": "Movement, attacks, hitboxes and fighter systems.",
 		"accent": Color("ff6b57"),
 		"modules": [
-			{"title": "Ken Training Ground", "description": "Phase one: authentic sprite-sheet locomotion, jumping and crouching.", "scene": "res://modules/fighting/ken_training_lab.tscn", "status": "READY"}
+			{"title": "Ken Training Ground", "description": "Movement, standing attacks and a centre-stage training dummy.", "scene": "res://modules/fighting/ken_training_lab.tscn", "status": "READY"}
 		]
 	}
 }
