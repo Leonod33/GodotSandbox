@@ -40,7 +40,7 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 - It remains at the stage centre and turns to face the player.
 - Ground pushboxes meet when the two idle sprites' forward hair/head tips touch; airborne movement still permits jump-over crossovers.
 - Ken automatically faces the dummy after moving to either side.
-- Confirmed standing punch and kick variants are selected automatically from fighter distance. LB remains available as a direct close-heavy-punch preview.
+- Confirmed standing punch and kick variants are selected automatically within a 155-pixel centre-distance threshold. Since ground collision occurs at 106 pixels, close attacks require Ken to enter roughly the nearest half of the available range. LB remains available as a direct close-heavy-punch preview.
 
 ## Recognised but deliberately deferred
 
