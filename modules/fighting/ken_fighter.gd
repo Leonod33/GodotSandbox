@@ -17,7 +17,7 @@ const START_X := 270.0
 const LEFT_BOUND := 70.0
 const RIGHT_BOUND := 1082.0
 const PUSHBOX_HALF_WIDTH := 53.0
-const CLOSE_ATTACK_DISTANCE := 205.0
+const CLOSE_ATTACK_DISTANCE := 155.0
 const ATTACK_STATES: Array[StringName] = [
 	&"light_punch", &"medium_punch", &"heavy_punch",
 	&"close_light_punch", &"close_medium_punch", &"close_heavy_punch",
