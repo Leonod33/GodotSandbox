@@ -2,7 +2,7 @@ class_name TrainingDummy
 extends Node2D
 
 const DISPLAY_SCALE := 2.36
-const PUSHBOX_HALF_WIDTH := 72.0
+const PUSHBOX_HALF_WIDTH := 53.0
 const IDLE_SPEED := 7.5
 
 var idle_frames: Array[Rect2] = [
