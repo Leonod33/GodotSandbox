@@ -3,7 +3,7 @@ extends Node2D
 
 signal state_changed(new_state: StringName)
 
-# The supplied sheet is already the full-resolution 1546x5207 source.  This
+# The supplied sheet is already the full-resolution 1546x5207 source. This
 # display multiplier preserves the character's previous on-screen size without
 # scaling the Node2D or altering the source texture.
 const DISPLAY_SCALE := 2.36
@@ -13,6 +13,9 @@ const GRAVITY := 1450.0
 const FLOOR_Y := 535.0
 const LEFT_BOUND := 105.0
 const RIGHT_BOUND := 785.0
+const ATTACK_STATES: Array[StringName] = [
+	&"light_punch", &"medium_punch", &"heavy_punch", &"close_heavy_punch"
+]
 
 var idle_frames: Array[Rect2] = [
 	Rect2(15, 22, 62, 93), Rect2(81, 22, 64, 93), Rect2(150, 22, 62, 93),
@@ -28,6 +31,12 @@ var light_punch_frames: Array[Rect2] = [
 var light_punch_anchors: Array[Vector2] = [
 	Vector2(33, 96), Vector2(48, 96), Vector2(32, 96)
 ]
+var medium_punch_frames: Array[Rect2] = []
+var medium_punch_anchors: Array[Vector2] = []
+var heavy_punch_frames: Array[Rect2] = []
+var heavy_punch_anchors: Array[Vector2] = []
+var close_heavy_punch_frames: Array[Rect2] = []
+var close_heavy_punch_anchors: Array[Vector2] = []
 var walk_frames: Array[Rect2] = [
 	Rect2(15, 160, 57, 87), Rect2(76, 155, 64, 92), Rect2(142, 152, 70, 95),
 	Rect2(216, 155, 67, 92), Rect2(287, 155, 57, 92), Rect2(348, 155, 54, 92)
@@ -64,6 +73,7 @@ var grounded: bool = true
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite_sheet = load("res://modules/fighting/ken_sheet.png") as Texture2D
+	populate_punch_frames_from_sheet()
 	position.y = FLOOR_Y
 	queue_redraw()
 
@@ -72,16 +82,22 @@ func _physics_process(delta: float) -> void:
 	var horizontal_input: float = Input.get_axis("ui_left", "ui_right")
 	var crouching: bool = grounded and Input.is_action_pressed("ui_down")
 
-	if grounded and not crouching and state != &"light_punch" and Input.is_action_just_pressed("light_punch"):
-		velocity.x = 0.0
-		set_state(&"light_punch")
+	if grounded and not crouching and not is_attacking():
+		if Input.is_action_just_pressed("close_heavy_punch"):
+			start_attack(&"close_heavy_punch")
+		elif Input.is_action_just_pressed("heavy_punch"):
+			start_attack(&"heavy_punch")
+		elif Input.is_action_just_pressed("medium_punch"):
+			start_attack(&"medium_punch")
+		elif Input.is_action_just_pressed("light_punch"):
+			start_attack(&"light_punch")
 
-	if grounded and state != &"light_punch" and Input.is_action_just_pressed("ui_up") and not crouching:
+	if grounded and not is_attacking() and Input.is_action_just_pressed("ui_up") and not crouching:
 		grounded = false
 		velocity.y = JUMP_VELOCITY
 		set_state(&"jump")
 
-	if state == &"light_punch":
+	if is_attacking():
 		velocity.x = 0.0
 	elif not grounded:
 		velocity.y += GRAVITY * delta
@@ -128,6 +144,15 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
+func start_attack(attack_state: StringName) -> void:
+	velocity.x = 0.0
+	set_state(attack_state)
+
+
+func is_attacking() -> bool:
+	return state in ATTACK_STATES
+
+
 func set_state(new_state: StringName) -> void:
 	if state == new_state:
 		return
@@ -139,12 +164,15 @@ func set_state(new_state: StringName) -> void:
 
 func advance_animation(delta: float) -> void:
 	var frames: Array[Rect2] = current_frames()
+	if frames.is_empty():
+		set_state(&"idle")
+		return
 	var frames_per_second: float = animation_speed()
 	frame_elapsed += delta
 	if frame_elapsed < 1.0 / frames_per_second:
 		return
 	frame_elapsed -= 1.0 / frames_per_second
-	if state == &"light_punch":
+	if is_attacking():
 		frame_index += 1
 		if frame_index >= frames.size():
 			set_state(&"idle")
@@ -164,6 +192,12 @@ func current_frames() -> Array[Rect2]:
 	match state:
 		&"light_punch":
 			return light_punch_frames
+		&"medium_punch":
+			return medium_punch_frames
+		&"heavy_punch":
+			return heavy_punch_frames
+		&"close_heavy_punch":
+			return close_heavy_punch_frames
 		&"walk":
 			return walk_frames
 		&"crouch":
@@ -178,6 +212,12 @@ func current_anchors() -> Array[Vector2]:
 	match state:
 		&"light_punch":
 			return light_punch_anchors
+		&"medium_punch":
+			return medium_punch_anchors
+		&"heavy_punch":
+			return heavy_punch_anchors
+		&"close_heavy_punch":
+			return close_heavy_punch_anchors
 		&"walk":
 			return walk_anchors
 		&"crouch":
@@ -192,6 +232,12 @@ func animation_speed() -> float:
 	match state:
 		&"light_punch":
 			return 14.0
+		&"medium_punch":
+			return 12.0
+		&"heavy_punch":
+			return 10.0
+		&"close_heavy_punch":
+			return 10.5
 		&"walk":
 			return 11.0
 		&"crouch":
@@ -200,6 +246,115 @@ func animation_speed() -> float:
 			return 12.0
 		_:
 			return 7.5
+
+
+# The first attack rows contain several animation sequences with irregularly
+# sized frames. Reading their alpha-separated bounds keeps the frame selection
+# tied to the user's row/frame references without making fragile guesses at
+# hand-measured pixel rectangles.
+func populate_punch_frames_from_sheet() -> void:
+	if sprite_sheet == null:
+		return
+	var image: Image = sprite_sheet.get_image()
+	if image == null or image.is_empty():
+		push_error("Ken sprite sheet could not be read for punch frame mapping.")
+		return
+
+	var rows: Array[Vector2i] = find_sprite_rows(image, 800)
+	if rows.size() < 5:
+		push_error("Ken sprite sheet has fewer than five detectable animation rows.")
+		return
+
+	var third_row_frames: Array[Rect2] = find_frames_in_row(image, rows[2])
+	var fifth_row_frames: Array[Rect2] = find_frames_in_row(image, rows[4])
+
+	# Row 3: frames 1-3 are light punch; frames 4-8 are medium punch.
+	append_frame_range(third_row_frames, 3, 8, medium_punch_frames, medium_punch_anchors)
+	# Row 5: frames 4-10 are far heavy punch; frames 11-15 are close heavy punch.
+	append_frame_range(fifth_row_frames, 3, 10, heavy_punch_frames, heavy_punch_anchors)
+	append_frame_range(fifth_row_frames, 10, 15, close_heavy_punch_frames, close_heavy_punch_anchors)
+
+	if medium_punch_frames.size() != 5:
+		push_error("Expected five medium-punch frames on row 3.")
+	if heavy_punch_frames.size() != 7:
+		push_error("Expected seven far heavy-punch frames on row 5.")
+	if close_heavy_punch_frames.size() != 5:
+		push_error("Expected five close heavy-punch frames on row 5.")
+
+
+func find_sprite_rows(image: Image, scan_height: int) -> Array[Vector2i]:
+	var rows: Array[Vector2i] = []
+	var row_start: int = -1
+	var last_occupied_y: int = -1
+	var maximum_y: int = mini(scan_height, image.get_height())
+
+	for y in range(maximum_y):
+		var occupied: bool = false
+		for x in range(image.get_width()):
+			if image.get_pixel(x, y).a > 0.01:
+				occupied = true
+				break
+		if occupied:
+			if row_start == -1:
+				row_start = y
+			last_occupied_y = y
+		elif row_start != -1 and y - last_occupied_y > 3:
+			rows.append(Vector2i(row_start, last_occupied_y))
+			row_start = -1
+			last_occupied_y = -1
+
+	if row_start != -1:
+		rows.append(Vector2i(row_start, last_occupied_y))
+	return rows
+
+
+func find_frames_in_row(image: Image, row_bounds: Vector2i) -> Array[Rect2]:
+	var frames: Array[Rect2] = []
+	var frame_start_x: int = -1
+	var last_occupied_x: int = -1
+
+	for x in range(image.get_width()):
+		var occupied: bool = false
+		for y in range(row_bounds.x, row_bounds.y + 1):
+			if image.get_pixel(x, y).a > 0.01:
+				occupied = true
+				break
+		if occupied:
+			if frame_start_x == -1:
+				frame_start_x = x
+			last_occupied_x = x
+		elif frame_start_x != -1 and x - last_occupied_x > 3:
+			frames.append(tight_frame_rect(image, frame_start_x, last_occupied_x, row_bounds))
+			frame_start_x = -1
+			last_occupied_x = -1
+
+	if frame_start_x != -1:
+		frames.append(tight_frame_rect(image, frame_start_x, last_occupied_x, row_bounds))
+	return frames
+
+
+func tight_frame_rect(image: Image, start_x: int, end_x: int, row_bounds: Vector2i) -> Rect2:
+	var minimum_y: int = row_bounds.y
+	var maximum_y: int = row_bounds.x
+	for x in range(start_x, end_x + 1):
+		for y in range(row_bounds.x, row_bounds.y + 1):
+			if image.get_pixel(x, y).a > 0.01:
+				minimum_y = mini(minimum_y, y)
+				maximum_y = maxi(maximum_y, y)
+	return Rect2(start_x, minimum_y, end_x - start_x + 1, maximum_y - minimum_y + 1)
+
+
+func append_frame_range(
+	source_frames: Array[Rect2],
+	start_index: int,
+	end_index: int,
+	target_frames: Array[Rect2],
+	target_anchors: Array[Vector2]
+) -> void:
+	for index in range(start_index, mini(end_index, source_frames.size())):
+		var frame: Rect2 = source_frames[index]
+		target_frames.append(frame)
+		target_anchors.append(Vector2(frame.size.x / 2.0, frame.size.y - 1.0))
 
 
 func reset_fighter() -> void:
