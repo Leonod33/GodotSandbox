@@ -59,7 +59,7 @@ func _draw() -> void:
 
 	var centre_line := Color(0.35, 0.62, 1.0, 0.34)
 	draw_line(Vector2(DUMMY_X, 110), Vector2(DUMMY_X, FLOOR_Y), centre_line, 2.0)
-	draw_line(Vector2(DUMMY_X - 72, FLOOR_Y + 12), Vector2(DUMMY_X + 72, FLOOR_Y + 12), centre_line, 3.0)
+	draw_line(Vector2(DUMMY_X - 53, FLOOR_Y + 12), Vector2(DUMMY_X + 53, FLOOR_Y + 12), centre_line, 3.0)
 
 
 func build_interface() -> void:
@@ -129,13 +129,13 @@ func build_interface() -> void:
 	info.add_child(distance_label)
 
 	var implemented := Label.new()
-	implemented.text = "CURRENT BUILD\n✓ Full-width fighting stage\n✓ Centre training dummy\n✓ Hair-tip ground spacing\n✓ High neutral jump / travelling somersault\n✓ Crossover turning\n✓ Distance-selected kick variants"
+	implemented.text = "CURRENT BUILD\n✓ Full-width fighting stage\n✓ Centre training dummy\n✓ Head-touch ground spacing\n✓ High neutral jump / travelling somersault\n✓ Crossover turning\n✓ Distance-selected standing attacks"
 	implemented.add_theme_color_override("font_color", Color("dbe7fa"))
 	implemented.add_theme_font_size_override("font_size", 15)
 	info.add_child(implemented)
 
 	var controls := Label.new()
-	controls.text = "PUNCHES   X / Y / RB     Close-heavy preview: LB\nKICKS       A / B / RT     Close/far: automatic\n\nPress Select/View again to close this panel."
+	controls.text = "PUNCHES   X / Y / RB     Close/far: automatic\nKICKS       A / B / RT     Close/far: automatic\nLB retains the close-heavy-punch preview.\n\nPress Select/View again to close this panel."
 	controls.add_theme_color_override("font_color", Color("ffd166"))
 	controls.add_theme_font_size_override("font_size", 14)
 	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
