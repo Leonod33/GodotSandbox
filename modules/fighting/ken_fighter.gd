@@ -11,8 +11,10 @@ const WALK_SPEED := 245.0
 const JUMP_VELOCITY := -560.0
 const GRAVITY := 1450.0
 const FLOOR_Y := 535.0
-const LEFT_BOUND := 105.0
-const RIGHT_BOUND := 785.0
+const START_X := 270.0
+const LEFT_BOUND := 70.0
+const RIGHT_BOUND := 1082.0
+const PUSHBOX_HALF_WIDTH := 38.0
 const ATTACK_STATES: Array[StringName] = [
 	&"light_punch", &"medium_punch", &"heavy_punch", &"close_heavy_punch",
 	&"light_kick", &"medium_kick", &"heavy_kick"
@@ -75,6 +77,7 @@ var frame_elapsed: float = 0.0
 var velocity: Vector2 = Vector2.ZERO
 var facing: float = 1.0
 var grounded: bool = true
+var opponent: Node2D
 
 
 func _ready() -> void:
@@ -86,6 +89,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	var previous_x: float = position.x
 	var horizontal_input: float = Input.get_axis("ui_left", "ui_right")
 	var crouching: bool = grounded and Input.is_action_pressed("ui_down")
 
@@ -136,6 +140,9 @@ func _physics_process(delta: float) -> void:
 		set_state(&"idle")
 
 	position.x = clampf(position.x, LEFT_BOUND, RIGHT_BOUND)
+	constrain_against_opponent(previous_x)
+	position.x = clampf(position.x, LEFT_BOUND, RIGHT_BOUND)
+	update_facing_from_opponent()
 	advance_animation(delta)
 	queue_redraw()
 
@@ -164,6 +171,36 @@ func start_attack(attack_state: StringName) -> void:
 
 func is_attacking() -> bool:
 	return state in ATTACK_STATES
+
+
+func set_opponent(new_opponent: Node2D) -> void:
+	opponent = new_opponent
+	update_facing_from_opponent()
+
+
+func constrain_against_opponent(previous_x: float) -> void:
+	if not grounded or opponent == null:
+		return
+	var opponent_half_width: float = 38.0
+	if opponent.has_method("get_pushbox_half_width"):
+		opponent_half_width = float(opponent.call("get_pushbox_half_width"))
+	var minimum_separation: float = PUSHBOX_HALF_WIDTH + opponent_half_width
+	var difference: float = position.x - opponent.position.x
+	if absf(difference) >= minimum_separation:
+		return
+	var side: float = signf(difference)
+	if is_zero_approx(side):
+		side = -1.0 if previous_x <= opponent.position.x else 1.0
+	position.x = opponent.position.x + side * minimum_separation
+	velocity.x = 0.0
+
+
+func update_facing_from_opponent() -> void:
+	if opponent == null:
+		return
+	var direction_to_opponent: float = opponent.position.x - position.x
+	if not is_zero_approx(direction_to_opponent):
+		facing = signf(direction_to_opponent)
 
 
 func set_state(new_state: StringName) -> void:
@@ -402,8 +439,9 @@ func append_frame_range(
 
 
 func reset_fighter() -> void:
-	position = Vector2(335, FLOOR_Y)
+	position = Vector2(START_X, FLOOR_Y)
 	velocity = Vector2.ZERO
 	facing = 1.0
 	grounded = true
 	set_state(&"idle")
+	update_facing_from_opponent()
