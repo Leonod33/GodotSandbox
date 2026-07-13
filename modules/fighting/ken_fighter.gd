@@ -14,7 +14,8 @@ const FLOOR_Y := 535.0
 const LEFT_BOUND := 105.0
 const RIGHT_BOUND := 785.0
 const ATTACK_STATES: Array[StringName] = [
-	&"light_punch", &"medium_punch", &"heavy_punch", &"close_heavy_punch"
+	&"light_punch", &"medium_punch", &"heavy_punch", &"close_heavy_punch",
+	&"light_kick", &"medium_kick", &"heavy_kick"
 ]
 
 var idle_frames: Array[Rect2] = [
@@ -37,6 +38,12 @@ var heavy_punch_frames: Array[Rect2] = []
 var heavy_punch_anchors: Array[Vector2] = []
 var close_heavy_punch_frames: Array[Rect2] = []
 var close_heavy_punch_anchors: Array[Vector2] = []
+var light_kick_frames: Array[Rect2] = []
+var light_kick_anchors: Array[Vector2] = []
+var medium_kick_frames: Array[Rect2] = []
+var medium_kick_anchors: Array[Vector2] = []
+var heavy_kick_frames: Array[Rect2] = []
+var heavy_kick_anchors: Array[Vector2] = []
 var walk_frames: Array[Rect2] = [
 	Rect2(15, 160, 57, 87), Rect2(76, 155, 64, 92), Rect2(142, 152, 70, 95),
 	Rect2(216, 155, 67, 92), Rect2(287, 155, 57, 92), Rect2(348, 155, 54, 92)
@@ -73,7 +80,7 @@ var grounded: bool = true
 func _ready() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	sprite_sheet = load("res://modules/fighting/ken_sheet.png") as Texture2D
-	populate_punch_frames_from_sheet()
+	populate_attack_frames_from_sheet()
 	position.y = FLOOR_Y
 	queue_redraw()
 
@@ -83,7 +90,13 @@ func _physics_process(delta: float) -> void:
 	var crouching: bool = grounded and Input.is_action_pressed("ui_down")
 
 	if grounded and not crouching and not is_attacking():
-		if Input.is_action_just_pressed("close_heavy_punch"):
+		if Input.is_action_just_pressed("heavy_kick"):
+			start_attack(&"heavy_kick")
+		elif Input.is_action_just_pressed("medium_kick"):
+			start_attack(&"medium_kick")
+		elif Input.is_action_just_pressed("light_kick"):
+			start_attack(&"light_kick")
+		elif Input.is_action_just_pressed("close_heavy_punch"):
 			start_attack(&"close_heavy_punch")
 		elif Input.is_action_just_pressed("heavy_punch"):
 			start_attack(&"heavy_punch")
@@ -198,6 +211,12 @@ func current_frames() -> Array[Rect2]:
 			return heavy_punch_frames
 		&"close_heavy_punch":
 			return close_heavy_punch_frames
+		&"light_kick":
+			return light_kick_frames
+		&"medium_kick":
+			return medium_kick_frames
+		&"heavy_kick":
+			return heavy_kick_frames
 		&"walk":
 			return walk_frames
 		&"crouch":
@@ -218,6 +237,12 @@ func current_anchors() -> Array[Vector2]:
 			return heavy_punch_anchors
 		&"close_heavy_punch":
 			return close_heavy_punch_anchors
+		&"light_kick":
+			return light_kick_anchors
+		&"medium_kick":
+			return medium_kick_anchors
+		&"heavy_kick":
+			return heavy_kick_anchors
 		&"walk":
 			return walk_anchors
 		&"crouch":
@@ -238,6 +263,12 @@ func animation_speed() -> float:
 			return 10.0
 		&"close_heavy_punch":
 			return 10.5
+		&"light_kick":
+			return 14.0
+		&"medium_kick":
+			return 11.5
+		&"heavy_kick":
+			return 10.0
 		&"walk":
 			return 11.0
 		&"crouch":
@@ -252,7 +283,7 @@ func animation_speed() -> float:
 # sized frames. Reading their alpha-separated bounds keeps the frame selection
 # tied to the user's row/frame references without making fragile guesses at
 # hand-measured pixel rectangles.
-func populate_punch_frames_from_sheet() -> void:
+func populate_attack_frames_from_sheet() -> void:
 	if sprite_sheet == null:
 		return
 	var image: Image = sprite_sheet.get_image()
@@ -261,18 +292,25 @@ func populate_punch_frames_from_sheet() -> void:
 		return
 
 	var rows: Array[Vector2i] = find_sprite_rows(image, 800)
-	if rows.size() < 5:
-		push_error("Ken sprite sheet has fewer than five detectable animation rows.")
+	if rows.size() < 6:
+		push_error("Ken sprite sheet has fewer than six detectable animation rows.")
 		return
 
 	var third_row_frames: Array[Rect2] = find_frames_in_row(image, rows[2])
+	var fourth_row_frames: Array[Rect2] = find_frames_in_row(image, rows[3])
 	var fifth_row_frames: Array[Rect2] = find_frames_in_row(image, rows[4])
+	var sixth_row_frames: Array[Rect2] = find_frames_in_row(image, rows[5])
 
 	# Row 3: frames 1-3 are light punch; frames 4-8 are medium punch.
 	append_frame_range(third_row_frames, 3, 8, medium_punch_frames, medium_punch_anchors)
 	# Row 5: frames 4-10 are far heavy punch; frames 11-15 are close heavy punch.
 	append_frame_range(fifth_row_frames, 3, 10, heavy_punch_frames, heavy_punch_anchors)
 	append_frame_range(fifth_row_frames, 10, 15, close_heavy_punch_frames, close_heavy_punch_anchors)
+	# Row 6 frames 1-5 are the standing light kick.
+	append_frame_range(sixth_row_frames, 0, 5, light_kick_frames, light_kick_anchors)
+	# Row 4 holds the standing medium kick (frames 1-5) and heavy kick (frames 6-10).
+	append_frame_range(fourth_row_frames, 0, 5, medium_kick_frames, medium_kick_anchors)
+	append_frame_range(fourth_row_frames, 5, 10, heavy_kick_frames, heavy_kick_anchors)
 
 	if medium_punch_frames.size() != 5:
 		push_error("Expected five medium-punch frames on row 3.")
@@ -280,6 +318,12 @@ func populate_punch_frames_from_sheet() -> void:
 		push_error("Expected seven far heavy-punch frames on row 5.")
 	if close_heavy_punch_frames.size() != 5:
 		push_error("Expected five close heavy-punch frames on row 5.")
+	if light_kick_frames.size() != 5:
+		push_error("Expected five light-kick frames on row 6.")
+	if medium_kick_frames.size() != 5:
+		push_error("Expected five medium-kick frames on row 4.")
+	if heavy_kick_frames.size() != 5:
+		push_error("Expected five heavy-kick frames on row 4.")
 
 
 func find_sprite_rows(image: Image, scan_height: int) -> Array[Vector2i]:
