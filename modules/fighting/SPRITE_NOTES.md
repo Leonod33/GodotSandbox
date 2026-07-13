@@ -8,12 +8,13 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 
 - **Idle/standing:** first six sprites on the first row (`x=15…407`, `y=17…115`).
 - **Standing light punch:** the first three sprites on the third row (`x=15…255`, `y=284…381`). The animation is non-looping, locks ground movement briefly, and returns to idle when its recovery frame finishes.
-- **Standing light kick:** the first five sprites on row 6.
-- **Standing medium kick:** the first five sprites on row 4.
-- **Standing heavy kick:** frames 6–10 on row 4.
+- **Far standing light/medium kick:** both use frames 1–5 on row 4. Light plays the sequence quickly; medium pauses briefly on the fully extended third frame.
+- **Far standing heavy kick:** frames 6–10 on row 4.
+- **Close standing kicks:** row 6 contains light (frames 1–5), medium (frames 6–10), and heavy (frames 11–16).
 - **Forward walk:** first six sprites on the second row (`x=15…402`, `y=152…247`). The second six nearby appear to be the alternate/backward walk cycle; they are intentionally deferred until movement timing and facing have been tested.
 - **Crouch:** the standing-to-crouch transition around `x=76…206`, `y=1141…1216`.
 - **Neutral jump:** the compact vertical arc around `x=76…494`, `y=1522…1694`. The animation is driven by the character's physical ascent/apex/descent rather than playing as a blind loop.
+- **Travelling jump:** all nine sprites on row 16 (`y=2167…2345`) form the forward/backward somersault and play rapidly over a committed horizontal arc.
 
 ## Import settings
 
@@ -35,8 +36,9 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 
 - The dummy is a blue-palette Ken using the same six-frame idle animation.
 - It remains at the stage centre and turns to face the player.
-- Ground pushboxes prevent Ken walking through it, while airborne movement permits jump-over crossovers.
-- Ken automatically faces the dummy after moving to either side. Close/far attack selection is deliberately deferred until all corresponding sprite sequences have been confirmed.
+- Ground pushboxes meet when the two idle sprites' forward hair/head tips touch; airborne movement still permits jump-over crossovers.
+- Ken automatically faces the dummy after moving to either side.
+- Confirmed kick variants and the confirmed close/far heavy punches are selected from fighter distance. Close light/medium punch mapping remains deliberately deferred until those sequences are confirmed.
 
 ## Recognised but deliberately deferred
 
@@ -45,7 +47,7 @@ The upper sheet clearly contains standing normals, kicks, hit/guard reactions an
 ## Assumptions
 
 - The character begins facing right; the same frames are mirrored when facing left.
-- Movement uses a modern smooth velocity for this prototype, not yet frame-perfect SFII movement data.
+- Ground movement uses a modern smooth velocity. Jumps now use a higher, sharper committed arc inspired by the original SFII behaviour, but are not yet frame-data-perfect.
 - The ground collision is currently a single floor plane with simple horizontal fighter pushboxes. Hurtboxes and attack hitboxes are intentionally postponed.
 - All six conventional controller attack buttons are reserved. Start/Menu exits the experiment, while Select/View opens its help overlay.
 - The original sheet remains available as the authoritative source and instant fallback; movement and animation definitions do not depend on the enhanced sheet.
