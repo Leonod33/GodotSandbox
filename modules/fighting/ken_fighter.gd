@@ -16,10 +16,11 @@ const FLOOR_Y := 535.0
 const START_X := 270.0
 const LEFT_BOUND := 70.0
 const RIGHT_BOUND := 1082.0
-const PUSHBOX_HALF_WIDTH := 72.0
+const PUSHBOX_HALF_WIDTH := 53.0
 const CLOSE_ATTACK_DISTANCE := 205.0
 const ATTACK_STATES: Array[StringName] = [
-	&"light_punch", &"medium_punch", &"heavy_punch", &"close_heavy_punch",
+	&"light_punch", &"medium_punch", &"heavy_punch",
+	&"close_light_punch", &"close_medium_punch", &"close_heavy_punch",
 	&"light_kick", &"medium_kick", &"heavy_kick",
 	&"close_light_kick", &"close_medium_kick", &"close_heavy_kick"
 ]
@@ -40,8 +41,10 @@ var light_punch_anchors: Array[Vector2] = [
 ]
 var medium_punch_frames: Array[Rect2] = []
 var medium_punch_anchors: Array[Vector2] = []
-var heavy_punch_frames: Array[Rect2] = []
-var heavy_punch_anchors: Array[Vector2] = []
+var close_light_punch_frames: Array[Rect2] = []
+var close_light_punch_anchors: Array[Vector2] = []
+var close_medium_punch_frames: Array[Rect2] = []
+var close_medium_punch_anchors: Array[Vector2] = []
 var close_heavy_punch_frames: Array[Rect2] = []
 var close_heavy_punch_anchors: Array[Vector2] = []
 var far_light_medium_kick_frames: Array[Rect2] = []
@@ -124,9 +127,9 @@ func _physics_process(delta: float) -> void:
 		elif Input.is_action_just_pressed("heavy_punch"):
 			start_attack(distance_attack(&"close_heavy_punch", &"heavy_punch"))
 		elif Input.is_action_just_pressed("medium_punch"):
-			start_attack(&"medium_punch")
+			start_attack(distance_attack(&"close_medium_punch", &"medium_punch"))
 		elif Input.is_action_just_pressed("light_punch"):
-			start_attack(&"light_punch")
+			start_attack(distance_attack(&"close_light_punch", &"light_punch"))
 
 	if grounded and not is_attacking() and Input.is_action_just_pressed("ui_up") and not crouching:
 		grounded = false
@@ -275,7 +278,11 @@ func current_frames() -> Array[Rect2]:
 		&"medium_punch":
 			return medium_punch_frames
 		&"heavy_punch":
-			return heavy_punch_frames
+			return medium_punch_frames
+		&"close_light_punch":
+			return close_light_punch_frames
+		&"close_medium_punch":
+			return close_medium_punch_frames
 		&"close_heavy_punch":
 			return close_heavy_punch_frames
 		&"light_kick":
@@ -307,7 +314,11 @@ func current_anchors() -> Array[Vector2]:
 		&"medium_punch":
 			return medium_punch_anchors
 		&"heavy_punch":
-			return heavy_punch_anchors
+			return medium_punch_anchors
+		&"close_light_punch":
+			return close_light_punch_anchors
+		&"close_medium_punch":
+			return close_medium_punch_anchors
 		&"close_heavy_punch":
 			return close_heavy_punch_anchors
 		&"light_kick":
@@ -339,7 +350,11 @@ func animation_speed() -> float:
 		&"medium_punch":
 			return 12.0
 		&"heavy_punch":
-			return 10.0
+			return 12.0
+		&"close_light_punch":
+			return 14.0
+		&"close_medium_punch":
+			return 12.0
 		&"close_heavy_punch":
 			return 10.5
 		&"light_kick":
@@ -365,6 +380,9 @@ func animation_speed() -> float:
 
 
 func animation_frame_duration() -> float:
+	# Far heavy punch reuses far medium punch and holds its fully extended frame.
+	if state == &"heavy_punch" and frame_index == 2:
+		return 0.18
 	# Far light and medium kick share frames. Medium lingers on the fully
 	# extended third frame, matching the original game's heavier timing.
 	if state == &"medium_kick" and frame_index == 2:
@@ -396,8 +414,10 @@ func populate_attack_frames_from_sheet() -> void:
 
 	# Row 3: frames 1-3 are light punch; frames 4-8 are medium punch.
 	append_frame_range(third_row_frames, 3, 8, medium_punch_frames, medium_punch_anchors)
-	# Row 5: frames 4-10 are far heavy punch; frames 11-15 are close heavy punch.
-	append_frame_range(fifth_row_frames, 3, 10, heavy_punch_frames, heavy_punch_anchors)
+	# Far heavy punch reuses far medium punch with a longer extended-frame hold.
+	# Row 5 contains close light (1-3), medium (4-10), and heavy (11-15) punch.
+	append_frame_range(fifth_row_frames, 0, 3, close_light_punch_frames, close_light_punch_anchors)
+	append_frame_range(fifth_row_frames, 3, 10, close_medium_punch_frames, close_medium_punch_anchors)
 	append_frame_range(fifth_row_frames, 10, 15, close_heavy_punch_frames, close_heavy_punch_anchors)
 	# Row 4 frames 1-5 are shared by far light and medium kick. Their timing differs.
 	append_frame_range(fourth_row_frames, 0, 5, far_light_medium_kick_frames, far_light_medium_kick_anchors)
@@ -410,8 +430,10 @@ func populate_attack_frames_from_sheet() -> void:
 
 	if medium_punch_frames.size() != 5:
 		push_error("Expected five medium-punch frames on row 3.")
-	if heavy_punch_frames.size() != 7:
-		push_error("Expected seven far heavy-punch frames on row 5.")
+	if close_light_punch_frames.size() != 3:
+		push_error("Expected three close light-punch frames on row 5.")
+	if close_medium_punch_frames.size() != 7:
+		push_error("Expected seven close medium-punch frames on row 5.")
 	if close_heavy_punch_frames.size() != 5:
 		push_error("Expected five close heavy-punch frames on row 5.")
 	if far_light_medium_kick_frames.size() != 5:
