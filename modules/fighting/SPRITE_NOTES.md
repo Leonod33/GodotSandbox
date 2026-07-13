@@ -28,6 +28,15 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 - Xbox controller **A**: standing light kick (`JOY_BUTTON_A`, button index `0`).
 - Xbox controller **B**: standing medium kick (`JOY_BUTTON_B`, button index `1`).
 - Xbox controller **RT**: standing heavy kick (`JOY_AXIS_TRIGGER_RIGHT`, axis index `5`).
+- Xbox controller **Select/View**: toggle the training-ground help overlay.
+- Xbox controller **L3**: reset Ken to his starting side of the dummy.
+
+## Training dummy
+
+- The dummy is a blue-palette Ken using the same six-frame idle animation.
+- It remains at the stage centre and turns to face the player.
+- Ground pushboxes prevent Ken walking through it, while airborne movement permits jump-over crossovers.
+- Ken automatically faces the dummy after moving to either side. Close/far attack selection is deliberately deferred until all corresponding sprite sequences have been confirmed.
 
 ## Recognised but deliberately deferred
 
@@ -37,6 +46,6 @@ The upper sheet clearly contains standing normals, kicks, hit/guard reactions an
 
 - The character begins facing right; the same frames are mirrored when facing left.
 - Movement uses a modern smooth velocity for this prototype, not yet frame-perfect SFII movement data.
-- The ground collision is currently a single floor plane. Fighter pushboxes, hurtboxes and attack hitboxes are intentionally postponed.
+- The ground collision is currently a single floor plane with simple horizontal fighter pushboxes. Hurtboxes and attack hitboxes are intentionally postponed.
 - All six conventional controller attack buttons are reserved. Start/Menu exits the experiment so B/Circle remains available for a future kick binding.
 - The original sheet remains available as the authoritative source and instant fallback; movement and animation definitions do not depend on the enhanced sheet.
