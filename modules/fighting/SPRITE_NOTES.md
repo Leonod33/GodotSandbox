@@ -7,7 +7,9 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 ## Confidently identified for this build
 
 - **Idle/standing:** first six sprites on the first row (`x=15…407`, `y=17…115`).
-- **Standing light punch:** the first three sprites on the third row (`x=15…255`, `y=284…381`). The animation is non-looping, locks ground movement briefly, and returns to idle when its recovery frame finishes.
+- **Far standing light punch:** row 3 frames 1–3.
+- **Far standing medium/heavy punch:** both use row 3 frames 4–8. Heavy holds the fully extended third frame longer.
+- **Close standing punches:** row 5 contains light (frames 1–3), medium (frames 4–10), and heavy (frames 11–15).
 - **Far standing light/medium kick:** both use frames 1–5 on row 4. Light plays the sequence quickly; medium pauses briefly on the fully extended third frame.
 - **Far standing heavy kick:** frames 6–10 on row 4.
 - **Close standing kicks:** row 6 contains light (frames 1–5), medium (frames 6–10), and heavy (frames 11–16).
@@ -38,7 +40,7 @@ All atlas rectangles in `ken_fighter.gd` are expressed directly in the full-reso
 - It remains at the stage centre and turns to face the player.
 - Ground pushboxes meet when the two idle sprites' forward hair/head tips touch; airborne movement still permits jump-over crossovers.
 - Ken automatically faces the dummy after moving to either side.
-- Confirmed kick variants and the confirmed close/far heavy punches are selected from fighter distance. Close light/medium punch mapping remains deliberately deferred until those sequences are confirmed.
+- Confirmed standing punch and kick variants are selected automatically from fighter distance. LB remains available as a direct close-heavy-punch preview.
 
 ## Recognised but deliberately deferred
 
