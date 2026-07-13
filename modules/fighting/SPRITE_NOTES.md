@@ -47,5 +47,5 @@ The upper sheet clearly contains standing normals, kicks, hit/guard reactions an
 - The character begins facing right; the same frames are mirrored when facing left.
 - Movement uses a modern smooth velocity for this prototype, not yet frame-perfect SFII movement data.
 - The ground collision is currently a single floor plane with simple horizontal fighter pushboxes. Hurtboxes and attack hitboxes are intentionally postponed.
-- All six conventional controller attack buttons are reserved. Start/Menu exits the experiment so B/Circle remains available for a future kick binding.
+- All six conventional controller attack buttons are reserved. Start/Menu exits the experiment, while Select/View opens its help overlay.
 - The original sheet remains available as the authoritative source and instant fallback; movement and animation definitions do not depend on the enhanced sheet.
